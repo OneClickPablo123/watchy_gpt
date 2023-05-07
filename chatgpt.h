@@ -12,9 +12,9 @@ String chatGPT(String prompt) {
   client.setCACert(root_ca);
 
   HTTPClient http;
-  http.begin(client, "https://" + chat_api_host + chat_api_path);
+  http.begin(client, "https://" + GPT_HOST + GPT_PATH);
   http.addHeader("Content-Type", "application/json");
-  http.addHeader("Authorization", "Bearer " + chat_api_token);
+  http.addHeader("Authorization", "Bearer " + GPT_TOKEN);
 
   // Build JSON request payload
   DynamicJsonDocument payload(2048);
