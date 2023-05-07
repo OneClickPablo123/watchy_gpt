@@ -5,7 +5,7 @@
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 
-#include "Watchy_main.ino"
+#include "secrets.h"
 
 String chatGPT(String prompt) {
   WiFiClientSecure client;
