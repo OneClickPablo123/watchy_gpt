@@ -13,8 +13,8 @@ void setup() {
 void loop() {
  Watchy::showWatchFace();
   if (digitalRead(WATCHY_BUTTON) == LOW) {
-    string speech = speechToText(text)
-    string response = chatGPT(speech)
+    string speech = speechToText(text);
+    string response = chatGPT(speech);
     display_on_watch(response);
     
   } else {
