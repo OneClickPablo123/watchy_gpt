@@ -11,43 +11,14 @@ void setup() {
 }
 
 void loop() {
-  Watchy::showMenu();
-}
-
-void menuCallback(int index) {
-  switch (index) {
-    case 0: {
-      // Chat with GPT
-      Watchy::drawMenu("Chat with GPT", "Press back to exit");
-      Watchy::display.show();
-      String message = "";
-      String response = "";
-      while (1) {
-        response = chatGPT(message);
-        if (response == "") break;
-        Watchy::drawChatMessage(response, true);
-        Watchy::display.show();
-        message = Watchy::getChatInput();
-        if (message == "") break;
-        Watchy::drawChatMessage(message, false);
-        Watchy::display.show();
-      }
-      break;
-    }
-    case 1: {
-      // Convert Speech to Text
-      Watchy::drawMenu("Speech to Text", "Press back to exit");
-      Watchy::display.show();
-      String text = googglespeech(YANDEX_API, YANDEX_HOST, YANDEX_URL);
-      Watchy::drawSpeechToTextResult(text);
-      Watchy::display.show();
-      break;
-    }
-    case 2: {
-      // Add more options as needed
-      break;
-    }
-    default:
-      break;
+ Watchy::showWatchFace();
+  if (digitalRead(WATCHY_BUTTON) == LOW) {
+    string speech = speechToText(text)
+    string response = chatGPT(speech)
+    display_on_watch(response);
+    
+  } else {
+    Watchy::showWatchFace();
   }
+  delay(100);
 }
