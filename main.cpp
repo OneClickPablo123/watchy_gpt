@@ -1,22 +1,32 @@
-#include "secrets.h"
-#include "chatgpt.h"
+#include <Watchy.h>
+#include <WiFi.h>
 #include "speechtotext.h"
-#include "watchy_display.h"
+#include "chatgpt.h"
+#include "secrets.h"
 
-void setup() {
-  Serial.begin(115200);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi...");
-  }
-}
+class WatchyChatGPT : public Watchy
+{
+public:
+    WatchyChatGPT() {};
 
-void loop() {
-  String speech = recognize_speech();
-  if (speech != "") {
-    String response = chatGPT(speech);
-    display_on_watch(response);
-  }
-  delay(1000);
-}
+protected:
+    void handleButtonPress(uint64_t wakeupBit)
+    {
+        if (wakeupBit == UP_BUTTON_MASK)
+        {
+            // Record audio and convert speech to text
+            String text = speechToText();
+
+            // Send text to ChatGPT API and get response
+            String response = getChatResponse();
+
+            // Show response on the display
+            display.fillScreen(GxEPD_WHITE);
+            display.setCursor(0, 0);
+            display.print(response);
+            display.display();
+        }
+    }
+};
+
+WatchyChatGPT watchy;
