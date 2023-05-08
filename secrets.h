@@ -1,27 +1,18 @@
-#ifndef SECRET_H
-#define SECRET_H
+#ifndef SECRETS_H
+#define SECRETS_H
 
-//WIFI PASS VARIABLE
-const char* WIFI_SSID = "MeinWifiName";
-const char* WIFI_PASS = "MeinWifiPasswort";
+// WiFi credentials
+const char* WIFI_SSID = "your_wifi_ssid";
+const char* WIFI_PASSWORD = "your_wifi_password";
 
-//CHATGPT VARIABLE
-const char* GPT_HOST = "api.openai.com";
-const char* GPT_PATH = "/v1/engines/davinci-codex/completions";
-const char* GPT_TOKEN = "MeinOpenAIToken";
+// Google Speech to Text API credentials
+const char* GOOGLE_API_KEY = "your_google_api_key";
+const char* GOOGLE_SPEECH_TO_TEXT_API_HOST = "speech.googleapis.com";
+const int GOOGLE_SPEECH_TO_TEXT_API_PORT = 443;
+const char* GOOGLE_SPEECH_TO_TEXT_API_ENDPOINT = "/v1/speech:recognize";
+const char* GOOGLE_SPEECH_TO_TEXT_API_FINGERPRINT = "AB:CD:EF:...";
 
-//GOOGLESPEECH VARIABLE
-const char* YANDEX_API = "MeinYandexAPIKey";
-const char* YANDEX_HOST = "speech-to-text-demo.api.cloud.yandex.net";
-const char* YANDEX_URL = "/stt/v2/longRunningRecognize";
+// ChatGPT API credentials
+const char* CHATGPT_API_KEY = "your_chatgpt_api_key";
 
-
-//ROOT CERTIFICAT
-const char* root_ca = \
-"-----BEGIN CERTIFICATE-----\n" \
-"MIIFZDCCBEygAwIBAgIQCgEBfCNgWtFhDyJwciS4/jANBgkqhkiG9w0BAQsFADBh\n" \
-...
-"FTfvGTrR\n" \
-"-----END CERTIFICATE-----\n";
-
-#endif
+#endif //SECRETS_H
