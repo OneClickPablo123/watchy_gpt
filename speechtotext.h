@@ -1,86 +1,77 @@
-#ifndef SPEECHTOTEXT
-#define SPEECHTOTEXT
+#ifndef SPEECHTOTEXT_H
+#define SPEECHTOTEXT_H
 
+#include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <ArduinoHttpClient.h>
-#include <ArduinoJson.h>
+#include <Arduino_JSON.h>
 #include "secrets.h"
+#include "Arduino.h"
+#include <Adafruit_I2S.h>
+#include "config.h"
 
-String speechToText() {
-  WiFiClientSecure client;
-  client.setCACert(root_ca);
+WiFiClientSecure client;
+HttpClient http(client, GOOGLE_SPEECH_TO_TEXT_API_HOST, 443);
 
-  const String host = YANDEX_HOST;
-  const String url = YANDEX_URL;
-  const String auth_token = YANDEX_API;
+String speechToText()
+{
+    // Set up microphone
+    Adafruit_I2S i2s(MIC_I2S_BCK, MIC_I2S_WS, MIC_I2S_DO, MIC_I2S_DI);
 
-  const String boundary = "----WebKitFormBoundary7MA4YWxkTrZu0gW";
+    //Connect to Google API
+    client.setCACert(GOOGLE_CERTIFICATE);
+    client.setPrivateKey(GOOGLE_PRIVATE_KEY);
+    client.setCertificate(GOOGLE_CLIENT_CERT);
 
-  const String body =
-      "--" + boundary + "\r\n"
-      "Content-Disposition: form-data; name=\"config\"\r\n"
-      "Content-Type: application/json\r\n"
-      "\r\n"
-      "{"
-      "  \"specification\": {"
-      "    \"languageCode\": \"de-DE\","
-      "    \"profanityFilter\": false,"
-      "    \"model\": \"general\""
-      "  }"
-      "}\r\n"
-      "--" + boundary + "\r\n"
-      "Content-Disposition: form-data; name=\"audioContent\"; filename=\"audio.wav\"\r\n"
-      "Content-Type: audio/wav\r\n"
-      "\r\n";
+    String authString = "Bearer " + String(GOOGLE_ACCESS_TOKEN);
+    http.begin(GOOGLE_SPEECH_TO_TEXT_API_ENDPOINT);
+    http.addHeader("Content-Type", "audio/wav");
+    http.addHeader("Authorization", authString);
+    // Set up request headers
+    http.addHeader("Content-Type", "audio/wav");
+    http.addHeader("Content-Encoding", "gzip");
+    http.addHeader("User-Agent", "SpeechToTextESP32");
 
-  HTTPClient http;
-  http.begin(client, host, 443, url);
+    // Record audio
+    int16_t samples[SAMPLES_PER_FRAME];
+    size_t bytesRead = 0;
+    size_t bytesWritten = 0;
 
-  http.addHeader("Authorization", "Bearer " + auth_token);
-  http.addHeader("Transfer-Encoding", "chunked");
-  http.addHeader("Content-Type", "multipart/form-data; boundary=" + boundary);
-  http.addHeader("User-Agent", "Mozilla/5.0");
+    i2s.begin(I2S_SAMPLE_RATE);
+    size_t count = 0;
+    while (count < SAMPLES_PER_FRAME)
+    {
+        bytesRead = i2s.read(samples, SAMPLES_PER_READ);
+        if (bytesRead > 0)
+        {
+            bytesWritten = http.write((const uint8_t*)samples, bytesRead);
+            count += bytesWritten / 2;
+        }
+    }
+    i2s.end();
 
-  http.sendRequest("POST", "");
+    // Send request
+    http.endRequest();
 
-  http.print(body);
+    // Check response
+    int httpCode = http.responseStatusCode();
+    if (httpCode != 200)
+    {
+        Serial.printf("Error sending request, HTTP status code: %d\n", httpCode);
+        return "";
+    }
 
-  // Read audio file from microphone
-  AudioInI2S* mic = new AudioInI2S(i2s_bck_pin, i2s_ws_pin, i2s_data_pin);
-  AudioInI2S& i2s_mic = *mic;
-  AudioInQueue queue;
-  AudioOutputI2S i2s_output(0, 1);
-  AudioConnection patchCord1(i2s_mic, 0, queue, 0);
-  AudioConnection patchCord2(i2s_mic, 1, queue, 1);
-  AudioConnection patchCord3(queue, 0, i2s_output, 0);
-  AudioConnection patchCord4(queue, 0, i2s_output, 1);
+    // Parse response
+    String response = http.responseBody();
+    JSONVar json = JSON.parse(response);
 
-  // Wait for the microphone to settle
-  delay(500);
+    String text = "";
+    if (JSON.typeof(json) == "object")
+    {
+        text = JSON.parse(response)["results"][0]["alternatives"][0]["transcript"];
+    }
 
-  // Start recording audio
-  i2s_output.begin();
-  AudioStream::resumeAll();
-
-  // Wait for recording to finish
-  delay(10000);
-
-  // Stop recording audio
-  AudioStream::stopAll();
-  i2s_output.end();
-
-  http.print("\r\n--" + boundary + "--\r\n");
-  http.endRequest();
-
-  // Get response
-  String response = http.getString();
-  http.end();
-
-  // Parse response
-  const size_t capacity = JSON_OBJECT_SIZE(2) + JSON_OBJECT_SIZE(3) + JSON_OBJECT_SIZE(5) + 220;
-  DynamicJsonDocument doc(capacity);
-  deserializeJson(doc, response);
-  const char* text = doc["result"]["chunks"][0]["alternatives"][0]["text"];
-  return String(text);
+    return text;
 }
 
 #endif
