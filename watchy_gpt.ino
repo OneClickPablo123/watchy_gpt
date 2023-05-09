@@ -11,6 +11,7 @@ public:
 
 protected:
     void handleButtonPress(uint64_t wakeupBit);
+    void drawWatchFace();
 };
 
 WatchyChatGPT watchy;
@@ -31,6 +32,20 @@ void WatchyChatGPT::handleButtonPress(uint64_t wakeupBit)
         watchy.display.print(response);
         watchy.display.display();
     }
+    else
+    {
+        // Redraw the watchface on any other button press
+        drawWatchFace();
+    }
+}
+
+void WatchyChatGPT::drawWatchFace()
+{
+    // Draw your custom watchface here
+    watchy.display.fillScreen(GxEPD_WHITE);
+    watchy.display.setCursor(0, 0);
+    watchy.display.println("My WatchyFace");
+    watchy.display.display();
 }
 
 void setup()
@@ -47,6 +62,7 @@ void setup()
     Serial.println("Connected to WiFi");
 
     watchy.init();
+    drawWatchFace(); // Display the watchface on startup
 }
 
 void loop()
