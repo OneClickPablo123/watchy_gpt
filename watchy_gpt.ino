@@ -23,7 +23,7 @@ void WatchyChatGPT::handleButtonPress(uint64_t wakeupBit)
         String text = speechToText();
 
         // Send text to ChatGPT API and get response
-        String response = getChatResponse();
+        String response = getChatResponse(text);
 
         // Show response on the display
         watchy.display.fillScreen(GxEPD_WHITE);
